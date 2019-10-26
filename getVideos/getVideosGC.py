@@ -29,7 +29,6 @@ class GCSObjectStreamUpload(object):
         self._transport = AuthorizedSession(
             credentials=self._client._credentials
         )
-        print(self._client._credentials)
         self._request = None  # type: requests.ResumableUpload
 
     def __enter__(self):
@@ -61,7 +60,6 @@ class GCSObjectStreamUpload(object):
         self._request.transmit_next_chunk(self._transport)
 
     def write(self, data: bytes) -> int:
-        print('inside write. request:', self._request)
         data_len = len(data)
         self._buffer_size += data_len
         self._buffer += data
@@ -86,7 +84,6 @@ class GCSObjectStreamUpload(object):
     def tell(self) -> int:
         return self._read
 
-
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     print('inside upload_blob')
@@ -105,23 +102,19 @@ def extract_video_id_from_url(url):
         video_id = None
     return video_id
     
-# Get this from quefilery string
-yt_link = 'https://www.youtube.com/watch?v=AODgzuXY5cQ'
-#yt_link = 'https://www.youtube.com/watch?v=vS3WsnX-bjA&t=4s'
-
 def get_yt_video(request):
-    try:            
-        print('try')
-        yt_id = extract_video_id_from_url(yt_link)
-        # Download and stream to S3 bucket
-        yt_object = YouTube(yt_link)
-        yt_stream = yt_object.streams.filter(only_audio=True).first()
-        data = yt_stream.stream_to_buffer()
-        with GCSObjectStreamUpload(client=client, bucket_name='visumm-store', blob_name= yt_id + '/youtube-' + yt_stream.default_filename) as fh:
-            fh.write(data.getbuffer())
-    except Exception as e:
-        print('exception')
-        print(e)
+    if request.args and 'youtube_url' in request.args:
+        yt_link = request.args.get('youtube_url')
+        print('Got a request with youtube_url=', yt_link)
+    else:
+        print('ERROR: no URL was provided. exiting.')
+        return
+    yt_id = extract_video_id_from_url(yt_link)
+    yt_object = YouTube(yt_link)
+    yt_stream = yt_object.streams.filter(only_audio=True).first()
+    data = yt_stream.stream_to_buffer()
+    with GCSObjectStreamUpload(client=client, bucket_name='visumm-store', blob_name= yt_id + '/youtube-' + yt_stream.default_filename) as fh:
+        fh.write(data.getbuffer())
 
 # The lambda function is created from the code above
 # The code below is to test locally.
