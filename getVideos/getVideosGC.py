@@ -99,23 +99,30 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 def extract_video_id_from_url(url):
     parsed_url = urlparse(url)
     qs = parse_qs(parsed_url.query)
-    if 'v' in qs.keys(): 
-        video_id = qs['v']
+    if 'v' in qs.keys() and len(qs['v']) >= 1: 
+        video_id = qs['v'][0]
     else:
         video_id = None
     return video_id
     
 # Get this from quefilery string
-yt_link = 'https://www.youtube.com/watch?v=sDj72zqZakE'
+yt_link = 'https://www.youtube.com/watch?v=AODgzuXY5cQ'
 #yt_link = 'https://www.youtube.com/watch?v=vS3WsnX-bjA&t=4s'
 
-def get_yt_video(yt_url):
-    yt_id = extract_video_id_from_url(yt_url)
+def get_yt_video(request):
+    try:            
+        print('try')
+        yt_id = extract_video_id_from_url(yt_link)
+        # Download and stream to S3 bucket
+        yt_object = YouTube(yt_link)
+        yt_stream = yt_object.streams.filter(only_audio=True).first()
+        data = yt_stream.stream_to_buffer()
+        with GCSObjectStreamUpload(client=client, bucket_name='visumm-store', blob_name= yt_id + '/youtube-' + yt_stream.default_filename) as fh:
+            fh.write(data.getbuffer())
+    except Exception as e:
+        print('exception')
+        print(e)
 
-    # Download and stream to S3 bucket
-    yt_object = YouTube(yt_link)
-    yt_stream = yt_object.streams.filter(only_audio=True).first()
-    data = yt_stream.stream_to_buffer()
-
-    with GCSObjectStreamUpload(client=client, bucket_name='visumm-store', blob_name= yt_video_id + '/youtube-' + yt_stream.default_filename) as fh:
-        fh.write(data.getbuffer())
+# The lambda function is created from the code above
+# The code below is to test locally.
+get_yt_video('request')
