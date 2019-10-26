@@ -5,7 +5,7 @@ from google.resumable_media import requests, common
 from google.auth.transport.requests import AuthorizedSession
 from urllib.parse import urlparse, parse_qs 
 
-bucket_name='visumm-store-test'
+bucket_name='visumm-store'
 client = storage.Client()
 
 # This class allows to stream write to Google Cloud Storage
