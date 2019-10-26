@@ -1,0 +1,14 @@
+service: vis
+functions:
+  summariser:
+    handler: summarise
+    events:
+      - http: path
+
+plugins:
+  - serverless-google-cloudfunctions
+provider:
+  name: google
+  runtime: python37
+  project: visumm
+  credentials: ~/.gcloud/visumm-08ef11d690f5.json
