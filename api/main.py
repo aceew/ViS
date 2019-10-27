@@ -207,9 +207,6 @@ def get_summary(input_filename, output_filename):
     blob.upload_from_string(body, content_type="text/plain")
     return body
 
-
-
-
 def dispatchEvent(msg, status):
     publisher = pubsub_v1.PublisherClient()
     topic_name = 'projects/{project_id}/topics/{topic}'.format(
@@ -224,9 +221,6 @@ def dispatchEvent(msg, status):
         'title':msg,
         'progress':status
     })
-
-
-
 
 def main(request):
     youtube_url = get_youtube_url(request)
