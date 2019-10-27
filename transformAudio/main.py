@@ -20,17 +20,25 @@ def upload_blob(source_file_name, destination_blob_name):
     print('File {} has been uploaded to {}.'.format(source_file_name, destination_blob_name))
 
 def main(request):
-    # const declariation
-    input_filename='lTxn2BuqyzU/youtube-CGI Animated Short Film Watermelon A Cautionary Tale by Kefei Li & Connie Qin He  CGMeetup.mp4'
-    output_filename='temp.mp4'
-    output_filename_transformed='temp.flac'
+    # read input arguments
+    if request.args and 'input_filename' in requests.args:
+        input_filename = request.args.get('input_filename')
+        # crop the file extension!
+        input_filename = input_filename[0:-4] # crop the last 4 chars, '.mp4'
+    else:
+      print('ERROR: no input_filename was provided. existing')
+      return
+    # constants for local storage
+    local_filename='temp.mp4'
+    local_filename_transformed='temp.flac'
     # Get file from S3 bucket
-    download_blob(input_filename, output_filename)
+    download_blob(input_filename, local_filename)
     # Convert file from MP4 to flac
     print('converting files')
-    mp4_audio = AudioSegment.from_file(output_filename, format="mp4")
-    mp4_audio.export(output_filename_transformed, format="flac")
+    mp4_audio = AudioSegment.from_file(local_filename, format="mp4")
+    mp4_audio.export(local_filename_transformed, format="flac")
     # Store file to S3 bucket
-    upload_blob(output_filename_transformed, 'lTxn2BuqyzU/audiooo.flac')
+    output_filename = input_filename + '.flac' # this contains bucketname + filename + extension
+    upload_blob(local_filename_transformed, output_filename)
 
 main('request')
