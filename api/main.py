@@ -9,6 +9,10 @@ from google.resumable_media import requests, common
 from google.auth.transport.requests import AuthorizedSession
 from gensim.summarization.summarizer import summarize
 from urllib.parse import urlparse, parse_qs 
+#pip3 install google-cloud-pubsub
+from google.cloud import pubsub_v1
+import uuid
+import datetime
 
 
 bucket_name='visumm-store'
@@ -204,6 +208,26 @@ def get_summary(input_filename, output_filename):
     return body
 
 
+
+
+def dispatchEvent(msg, status):
+    publisher = pubsub_v1.PublisherClient()
+    topic_name = 'projects/{project_id}/topics/{topic}'.format(
+        project_id='visumm',
+        topic='file-update',  # Set this to something appropriate.
+    )
+
+    publisher.publish(topic_name, b'' , **{
+        'id': str(uuid.uuid1()),
+        'created': str(datetime.datetime.now()),
+        'state':'5',
+        'title':msg,
+        'progress':status
+    })
+
+
+
+
 def main(request):
     youtube_url = get_youtube_url(request)
     if not youtube_url:
@@ -211,18 +235,23 @@ def main(request):
         response = { "statusCode": 400, "error": "You must provide a valid youtube_url as a query string parameter"}
         return json.dumps(response, indent=4)
     youtube_id = extract_video_id_from_url(youtube_url)
+    dispatchEvent('Receive youtube video:' + youtube_id, 'SUBMITTED')
     # Get youtube video
     outfile_mp4 = youtube_id + '/audio.mp4'
     get_youtube_video(youtube_url, outfile_mp4)
+    dispatchEvent('Downloaded youtube video:' + youtube_id, 'DOWNLOADED')
     # Transform .mp4 to .flac
     outfile_flac = youtube_id + '/audio.flac'
     transform_audio_to_flac(outfile_mp4, outfile_flac)
+    dispatchEvent('Converted:' + youtube_id, 'CONVERTED')
     # Tranform .flac to .txt
     outfile_full_text = youtube_id + '/audio_full_text.txt'
     text_full = get_text_from_audio(outfile_flac, outfile_full_text)
+    dispatchEvent('AudioExtracted:' + youtube_id, 'AUDIO_EXTRACTED')
     # Transform full text to summary
     outfile_summary = youtube_id + '/audio_summary.txt'
     text_summary = get_summary(outfile_full_text, outfile_summary)
+    dispatchEvent('Summerised:' + youtube_id, 'SUMMARISED')
     # respond
     response = {
         "statusCode": 200, 
