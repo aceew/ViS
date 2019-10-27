@@ -5,8 +5,7 @@ from google.resumable_media import requests, common
 from google.auth.transport.requests import AuthorizedSession
 from urllib.parse import urlparse, parse_qs 
 
-bucket_name='visumm-store'
-client = storage.Client()
+
 
 # This class allows to stream write to Google Cloud Storage
 class GCSObjectStreamUpload(object):
@@ -103,6 +102,7 @@ def extract_video_id_from_url(url):
     return video_id
     
 def get_yt_video(request):
+    client = storage.Client()
     if request.args and 'youtube_url' in request.args:
         yt_link = request.args.get('youtube_url')
         print('Got a request with youtube_url=', yt_link)
@@ -118,4 +118,4 @@ def get_yt_video(request):
 
 # The lambda function is created from the code above
 # The code below is to test locally.
-get_yt_video('request')
+#get_yt_video('request')

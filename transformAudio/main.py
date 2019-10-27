@@ -1,13 +1,16 @@
 from pydub import AudioSegment
 from google.cloud import storage
 
-bucket_name='visumm-store'
-storage_client = storage.Client()
-bucket = storage_client.get_bucket(bucket_name)
+
 
 def download_blob(source_blob_name, destination_file_name):
     """Downloads a blob from the bucket."""
     print('inside download_blob')
+    
+    bucket_name='visumm-store'
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+
     blob = bucket.blob(source_blob_name)
     blob.download_to_filename(destination_file_name)
     print('File {} has been downloaded to {}.'.format(source_blob_name, destination_file_name))
@@ -15,11 +18,16 @@ def download_blob(source_blob_name, destination_file_name):
 def upload_blob(source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     print('inside upload_blob')
+    bucket_name='visumm-store'
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
     print('File {} has been uploaded to {}.'.format(source_file_name, destination_blob_name))
 
-def main(request):
+def transform_audio(request):
+    
     # read input arguments
     if request.args and 'input_filename' in request.args:
         input_filename = request.args.get('input_filename')
@@ -41,4 +49,4 @@ def main(request):
     output_filename = input_filename + '.flac' # this contains bucketname + filename + extension
     upload_blob(local_filename_transformed, output_filename)
 
-main('request')
+#main('request')

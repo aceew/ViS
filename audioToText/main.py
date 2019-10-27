@@ -2,24 +2,25 @@ from google.cloud import speech_v1
 from google.cloud.speech_v1 import enums
 from google.cloud import storage
 
-# S3
-bucket_name='visumm-store'
-storage_client = storage.Client()
-bucket = storage_client.get_bucket(bucket_name)
-
-# S2T
-client = speech_v1.SpeechClient()
-
 
 def upload_blob(source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     print('inside upload_blob')
+    # S3
+    bucket_name='visumm-store'
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
     print('File {} has been uploaded to {}.'.format(source_file_name, destination_blob_name))
 
 
 def sample_long_running_recognize(request=''):
+    bucket_name='visumm-store'
+
+    # S2T
+    client = speech_v1.SpeechClient()
+
     # read input arguments
     if request.args and 'input_filename' in request.args:
         input_filename = request.args.get('input_filename')
@@ -68,4 +69,4 @@ def sample_long_running_recognize(request=''):
     output_filename = output_filename + '.txt' # add .txt extension
     upload_blob(local_fpath, output_filename)
 
-sample_long_running_recognize()
+#sample_long_running_recognize()

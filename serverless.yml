@@ -1,7 +1,26 @@
 service: vis
 functions:
+  get_yt_video:
+    handler: get_yt_video
+    events:
+      - event:
+          eventType: google.storage.object.finalize
+          resource: 'projects/${self:provider.project, ""}/buckets/${self:custom.bucketName}'
   summariser:
     handler: summarise
+    events:
+      - event:
+          eventType: google.storage.object.finalize
+          resource: 'projects/${self:provider.project, ""}/buckets/${self:custom.bucketName}'
+  extract_audio:
+    handler: transform_audio
+    events:
+      - event:
+          eventType: google.storage.object.finalize
+          resource: 'projects/${self:provider.project, ""}/buckets/${self:custom.bucketName}'
+  
+  audio_to_text:
+    handler: sample_long_running_recognize
     events:
       - event:
           eventType: google.storage.object.finalize
