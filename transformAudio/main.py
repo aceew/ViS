@@ -20,6 +20,7 @@ def upload_blob(source_file_name, destination_blob_name):
     print('File {} has been uploaded to {}.'.format(source_file_name, destination_blob_name))
 
 def main(request):
+  print('request: ', request)
     # read input arguments
     if request.args and 'input_filename' in request.args:
         input_filename = request.args.get('input_filename')
