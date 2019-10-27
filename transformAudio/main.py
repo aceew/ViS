@@ -21,16 +21,15 @@ def upload_blob(source_file_name, destination_blob_name):
 
 def main(request):
     # read input arguments
-    if request.args and 'input_filename' in requests.args:
+    if request.args and 'input_filename' in request.args:
         input_filename = request.args.get('input_filename')
-        # crop the file extension!
-        input_filename = input_filename[0:-4] # crop the last 4 chars, '.mp4'
+        print('got input_filename: ', input_filename)
     else:
       print('ERROR: no input_filename was provided. existing')
       return
     # constants for local storage
-    local_filename='temp.mp4'
-    local_filename_transformed='temp.flac'
+    local_filename='/tmp/temp.mp4'
+    local_filename_transformed='/tmp/temp.flac'
     # Get file from S3 bucket
     download_blob(input_filename, local_filename)
     # Convert file from MP4 to flac
@@ -38,6 +37,7 @@ def main(request):
     mp4_audio = AudioSegment.from_file(local_filename, format="mp4")
     mp4_audio.export(local_filename_transformed, format="flac")
     # Store file to S3 bucket
+    input_filename = input_filename[0:-4] # crop the last 4 chars, '.mp4'
     output_filename = input_filename + '.flac' # this contains bucketname + filename + extension
     upload_blob(local_filename_transformed, output_filename)
 
