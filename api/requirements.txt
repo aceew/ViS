@@ -1,5 +1,6 @@
 pydub==0.23.1
 pytube==9.5.2
+gensim==3.8.1
 google-cloud==0.34.0
 google-cloud-speech==1.2.0
 google-cloud-storage==1.20.0

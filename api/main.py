@@ -1,9 +1,13 @@
 import os
+import json
 from pytube import YouTube
 from pydub import AudioSegment
 from google.cloud import storage
+from google.cloud import speech_v1
+from google.cloud.speech_v1 import enums
 from google.resumable_media import requests, common
 from google.auth.transport.requests import AuthorizedSession
+from gensim.summarization.summarizer import summarize
 from urllib.parse import urlparse, parse_qs 
 
 
@@ -166,7 +170,7 @@ def get_text_from_audio(input_filename, output_filename):
     }
     audio = {"uri": storage_uri}
 
-    operation = client.long_running_recognize(config, audio)
+    operation = speech_client.long_running_recognize(config, audio)
     response = operation.result()
 
     full_transcript=''
@@ -186,16 +190,18 @@ def get_text_from_audio(input_filename, output_filename):
 
     return full_transcript
 
+
 # Function to summarize text
 def get_summary(input_filename, output_filename):
     # Get full text
     blob = bucket.get_blob(input_filename)
     text = blob.download_as_string()
     # Call the summarize API
-    body = summarize(text, 0.5)
+    body = summarize(str(text), 0.5)
     # Write to GCS     
     blob = bucket.blob(output_filename)
     blob.upload_from_string(body, content_type="text/plain")
+    return body
 
 
 def main(request):
@@ -220,7 +226,7 @@ def main(request):
     # respond
     response = {
         "statusCode": 200, 
-        "text": text_full
+        "text": text_full,
         "summary": text_summary,
     }
     return json.dumps(response, indent=4)
