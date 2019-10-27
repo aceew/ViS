@@ -3,7 +3,9 @@ functions:
   summariser:
     handler: summarise
     events:
-      - http: path
+      - event:
+          eventType: google.storage.object.finalize
+          resource: 'projects/${self:provider.project, ""}/buckets/${self:custom.bucketName}'
 
 plugins:
   - serverless-google-cloudfunctions
@@ -12,3 +14,5 @@ provider:
   runtime: python37
   project: visumm
   credentials: ~/.gcloud/visumm-08ef11d690f5.json
+custom:
+  bucketName: visumm-store
