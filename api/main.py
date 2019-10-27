@@ -217,7 +217,7 @@ def dispatchEvent(msg, status):
     publisher.publish(topic_name, b'' , **{
         'id': str(uuid.uuid1()),
         'created': str(datetime.datetime.now()),
-        'state':'5',
+        'state':status,
         'title':msg,
         'progress':status
     })
